@@ -1,8 +1,8 @@
 name: delta_player
 description: Video player widget with custom controls
 version: 0.0.10
-author:
-homepage:
+author: lijo vijayan
+homepage: https://github.com/lijovijayan
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
