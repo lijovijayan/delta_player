@@ -5,15 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class DeltaPlayer extends StatefulWidget {
+  final VideoPlayerController controller;
+  final double videoAspectRatio;
+  final EdgeInsetsGeometry padding;
+  DeltaPlayer({@required this.controller, this.videoAspectRatio, this.padding});
   @override
   _DeltaPlayerState createState() => _DeltaPlayerState();
 }
 
 class _DeltaPlayerState extends State<DeltaPlayer>
     with TickerProviderStateMixin {
-  VideoPlayerController _controller;
   VideoProgressController _videoProgressController;
-
   Animation<Offset> animation;
   AnimationController _animationController;
   Offset _begin = Offset(0.0, 1.0);
@@ -21,38 +23,23 @@ class _DeltaPlayerState extends State<DeltaPlayer>
   bool _showProgressbar = true;
   @override
   void initState() {
-    super.initState();
     _animationController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 300),
     );
-
-    _controller = VideoPlayerController.network(
-      // 'http://192.168.1.47/venom.mkv',
-      'http://192.168.43.152/venom.mkv',
-      // 'http://192.168.42.187/venom.mkv',
-      // 'http://192.168.43.152/video1.mp4'
-      // 'http://10.42.0.1/video2.mp4'
-      // 'http://4bfc63b6.ngrok.io/video.mkv'
-    )..initialize().then((_) {
-        print('initialized');
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {});
-      }, onError: (err) {
-        print(err);
-        print('error occured');
-      });
-    _videoProgressController = new VideoProgressController(_controller);
+    _videoProgressController =
+        new VideoProgressController(this.widget.controller);
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    print(_controller.value.aspectRatio);
+    print(this.widget.controller.value.aspectRatio);
     Timer _progressbarAnimationDelay = Timer(Duration(seconds: 0), () => {});
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: _controller.value.initialized
+    return ClipRRect(
+      child: Container(
+        color: Colors.black,
+        child: this.widget.controller.value.initialized
             ? GestureDetector(
                 onTap: () => {
                   if (_showProgressbar) _progressbarAnimationDelay.cancel(),
@@ -72,11 +59,13 @@ class _DeltaPlayerState extends State<DeltaPlayer>
                 child: Stack(
                   children: [
                     Container(
+                      padding: this.widget.padding,
                       alignment: Alignment.center,
                       child: AspectRatio(
-                        aspectRatio: _controller.value.aspectRatio,
-                        child: VideoPlayer(_controller),
-                      ),
+                          aspectRatio: this.widget.videoAspectRatio is double
+                              ? this.widget.videoAspectRatio
+                              : this.widget.controller.value.aspectRatio,
+                          child: VideoPlayer(this.widget.controller)),
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,
@@ -89,13 +78,13 @@ class _DeltaPlayerState extends State<DeltaPlayer>
                           curve: Curves.easeIn,
                         )),
                         child: ProgressIndicatorController(
-                          _controller,
+                          this.widget.controller,
                           videoController: _videoProgressController,
                         ),
                       ),
                     ),
                     VideoTapController(
-                      _controller,
+                      this.widget.controller,
                       videoController: _videoProgressController,
                     ),
                   ],
@@ -366,3 +355,4 @@ class ArrowDirection {
   static const left = 'left';
   static const right = 'right';
 }
+
